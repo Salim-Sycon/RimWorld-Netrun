@@ -43,7 +43,6 @@ public class Dialog_FixerShop : Window
         {
             Rect screen = NetrunUI.Bezel(inRect, 8f, null, NetrunUI.Ok);
             DrawContents(screen);
-            NetrunUI.Scanlines(screen);
         }
         finally
         {
@@ -55,6 +54,7 @@ public class Dialog_FixerShop : Window
     private void DrawContents(Rect inRect)
     {
         Widgets.DrawBoxSolid(inRect, NetrunUI.BgWindow);
+        NetrunUI.Scanlines(inRect);
         Rect r = inRect.ContractedBy(16f);
         int silver = ColonyGoods.CountCached(_map, ThingDefOf.Silver);
 

@@ -42,7 +42,6 @@ public class Dialog_Transition : Window
         {
             Rect screen = NetrunUI.Bezel(inRect, 8f);
             DrawContents(screen);
-            NetrunUI.Scanlines(screen);
         }
         finally
         {
@@ -54,6 +53,7 @@ public class Dialog_Transition : Window
     {
         TransitionManager manager = TransitionManager.Get();
         Widgets.DrawBoxSolid(inRect, NetrunUI.BgWindow);
+        NetrunUI.Scanlines(inRect);
         Rect r = inRect.ContractedBy(14f);
         float y = r.y;
 
