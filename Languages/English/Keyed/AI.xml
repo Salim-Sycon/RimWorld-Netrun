@@ -170,6 +170,8 @@
   <NR_AIBetrayalLabel>Betrayal: {0}</NR_AIBetrayalLabel>
   <NR_AIBetrayal>{0} sold everything it knew about your colony and disappeared. Heat +{1}.</NR_AIBetrayal>
   <NR_AIErase>Erase</NR_AIErase>
+  <NR_AIMore>More...</NR_AIMore>
+  <NR_AIMoreTip>Less common actions for this AI.</NR_AIMoreTip>
   <NR_AIEraseTip>Wipe the AI for good. Its remains give {0} cyberdata.</NR_AIEraseTip>
   <NR_AIEraseConfirm>Erase {0} for good? This cannot be undone.</NR_AIEraseConfirm>
   <NR_AIErasedLabel>AI erased: {0}</NR_AIErasedLabel>

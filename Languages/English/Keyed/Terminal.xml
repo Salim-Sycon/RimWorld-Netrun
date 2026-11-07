@@ -371,6 +371,8 @@ The ring shows the five levels; the arrow is the change over the last day. Click
   <NR_SettingsGlitchesTip>Short tears on button presses and the Red Zone flicker.</NR_SettingsGlitchesTip>
   <NR_SettingsScanlines>CRT lines</NR_SettingsScanlines>
   <NR_SettingsScanlinesTip>Thin lines over the terminal's screen.</NR_SettingsScanlinesTip>
+  <NR_SettingsCompact>Compact interface</NR_SettingsCompact>
+  <NR_SettingsCompactTip>Fewer icons and rows on busy screens: buttons show text only everywhere. The AI room also puts rare actions under "More..." and shows request history on hover.</NR_SettingsCompactTip>
   <NR_SettingsIceStrength>ICE and patrols: {0}</NR_SettingsIceStrength>
   <NR_SettingsAIHunger>AI hunger: {0}</NR_SettingsAIHunger>
   <NR_SettingsRetreatLoss>Loss on retreat: {0}</NR_SettingsRetreatLoss>

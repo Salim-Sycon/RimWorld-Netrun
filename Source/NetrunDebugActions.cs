@@ -897,4 +897,8 @@ public static class NetrunDebugActions
     /// <summary>Which terminal icons the tint finds and recolours (for the "icons stay white" reports on 1.7).</summary>
     [DebugAction(Tools, "UI: icon tint report", allowedGameStates = Playing, displayPriority = 40)]
     private static void TintReport() => Find.WindowStack.Add(new Dialog_MessageBox(NetrunTint.DebugReport()));
+
+    /// <summary>How much the AI room puts on screen (chips, buttons, rows, icons), to compare the compact setting on and off.</summary>
+    [DebugAction(Tools, "UI: AI room element count", allowedGameStates = Playing, displayPriority = 39)]
+    private static void AIRoomCount() => Find.WindowStack.Add(new Dialog_MessageBox(AITab.CountReport()));
 }

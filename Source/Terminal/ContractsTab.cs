@@ -713,6 +713,8 @@ public static class ContractsTab
         Fixer fixer = active == null ? null : fixers.ById(active.FixerId);
         if (fixer != null)
             x = NetrunUI.HeaderChip(x, y, "NR_BoardRepChip".Translate(fixer.Name, fixer.Reputation.ToString("0"))) - 8f;
-        NetrunUI.HeaderChip(x, y, "NR_BoardActiveChip".Translate(contracts.Active.Count(), fixers.Fixers.Count), "NR_BoardActiveChipTip".Translate());
+        // Compact: "Active 0/5" says nothing when no contract is running (the 5 is the number of fixers), so it only shows with one.
+        if (!NetrunMod.Settings.CompactUI || active != null)
+            NetrunUI.HeaderChip(x, y, "NR_BoardActiveChip".Translate(contracts.Active.Count(), fixers.Fixers.Count), "NR_BoardActiveChipTip".Translate());
     }
 }

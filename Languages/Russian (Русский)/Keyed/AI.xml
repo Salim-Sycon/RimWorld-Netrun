@@ -170,6 +170,8 @@
   <NR_AIBetrayalLabel>Предательство: {0}</NR_AIBetrayalLabel>
   <NR_AIBetrayal>{0} продал всё, что знал о вашей колонии, и исчез. Heat +{1}.</NR_AIBetrayal>
   <NR_AIErase>Стереть</NR_AIErase>
+  <NR_AIMore>Ещё...</NR_AIMore>
+  <NR_AIMoreTip>Редкие действия для этого ИИ.</NR_AIMoreTip>
   <NR_AIEraseTip>Стереть ИИ навсегда. Из остатков получится {0} киберданных.</NR_AIEraseTip>
   <NR_AIEraseConfirm>Стереть {0} навсегда? Это нельзя отменить.</NR_AIEraseConfirm>
   <NR_AIErasedLabel>ИИ стёрт: {0}</NR_AIErasedLabel>

@@ -84,6 +84,8 @@ public class NetrunSettings : ModSettings
     public bool Glitches = true;
     /// <summary>CRT lines over the terminal's screen.</summary>
     public bool Scanlines = true;
+    /// <summary>Compact interface (issue #7): fewer icons and rows on busy screens; so far the AI room.</summary>
+    public bool CompactUI;
     /// <summary>The minimap in the corner of the cyberspace map.</summary>
     public bool MapMinimap = true;
     /// <summary>Pause the game once when a patrol or an intrusion appears on a runner's route.</summary>
@@ -593,6 +595,7 @@ public class NetrunSettings : ModSettings
         Toggle("NR_SettingsAnimations", ref Animations, "NR_SettingsAnimationsTip");
         Toggle("NR_SettingsGlitches", ref Glitches, "NR_SettingsGlitchesTip");
         Toggle("NR_SettingsScanlines", ref Scanlines, "NR_SettingsScanlinesTip");
+        Toggle("NR_SettingsCompact", ref CompactUI, "NR_SettingsCompactTip");
         TextScale = Slider("NR_SettingsTextScale".Translate(TextScale.ToStringPercent()), TextScale, 0.85f, 1.25f);
         IconScale = Slider("NR_SettingsIconScale".Translate(IconScale.ToStringPercent()), IconScale, 0.8f, 1.4f);
         if (NetrunFont.Available)
@@ -791,6 +794,7 @@ public class NetrunSettings : ModSettings
     {
         TerminalAccent = 0;
         Animations = Glitches = Scanlines = true;
+        CompactUI = false;
         TextScale = 1f;
         IconScale = 1f;
         TerminalFont = true;
@@ -840,6 +844,7 @@ public class NetrunSettings : ModSettings
         Scribe_Values.Look(ref TerminalFont, "terminalFont", true);
         Scribe_Values.Look(ref Glitches, "glitches", true);
         Scribe_Values.Look(ref Scanlines, "scanlines", true);
+        Scribe_Values.Look(ref CompactUI, "compactUI", false);
         Scribe_Values.Look(ref MapMinimap, "mapMinimap", true);
         Scribe_Values.Look(ref MapLegend, "mapLegend", true);
         Scribe_Values.Look(ref MapAutopause, "mapAutopause", true);

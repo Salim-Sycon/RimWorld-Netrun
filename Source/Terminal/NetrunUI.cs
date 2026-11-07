@@ -862,6 +862,9 @@ public static partial class NetrunUI
 
     public static bool Button(Rect rect, string label, Color color, AcceptanceReport report, string tip = null, Texture2D icon = null)
     {
+        // Compact interface: a labelled button is text only. Icon-only buttons (no label) keep their icon.
+        if (icon != null && NetrunMod.Settings.CompactUI && !label.NullOrEmpty())
+            icon = null;
         bool active = report.Accepted;
         Rect hit = rect;
         if (Event.current.rawType == EventType.MouseDown && Event.current.button == 0)
@@ -939,7 +942,7 @@ public static partial class NetrunUI
     }
 
     /// <summary>Width a bordered button needs for its label.</summary>
-    public static float ButtonWidth(string label, bool icon = false) => Text.CalcSize(label).x + 28f + (icon ? 30f : 0f);
+    public static float ButtonWidth(string label, bool icon = false) => Text.CalcSize(label).x + 28f + (icon && !NetrunMod.Settings.CompactUI ? 30f : 0f);
 
     public static void Bar(Rect rect, float fraction, Color color)
     {

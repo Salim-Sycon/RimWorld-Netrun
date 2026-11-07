@@ -371,6 +371,8 @@
   <NR_SettingsGlitchesTip>Короткие разрывы при нажатиях и мерцание в Красной зоне.</NR_SettingsGlitchesTip>
   <NR_SettingsScanlines>ЭЛТ-линии</NR_SettingsScanlines>
   <NR_SettingsScanlinesTip>Тонкие линии поверх экрана терминала.</NR_SettingsScanlinesTip>
+  <NR_SettingsCompact>Компактный интерфейс</NR_SettingsCompact>
+  <NR_SettingsCompactTip>Меньше значков и строк на загруженных экранах: кнопки везде только с текстом. В комнате ИИ редкие действия ещё и в «Ещё...», история запросов по наведению.</NR_SettingsCompactTip>
   <NR_SettingsIceStrength>ICE и патрули: {0}</NR_SettingsIceStrength>
   <NR_SettingsAIHunger>Голод ИИ: {0}</NR_SettingsAIHunger>
   <NR_SettingsRetreatLoss>Потери при отступлении: {0}</NR_SettingsRetreatLoss>

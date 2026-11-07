@@ -23,16 +23,42 @@ public static class AITab
 
     private static readonly Color HostColor = new(0.45f, 1.00f, 0.55f);
 
+    /// <summary>The "Compact interface" setting (docs: issue #7): text-only buttons, fewer rows, rare actions behind "More".</summary>
+    private static bool Compact => NetrunMod.Settings.CompactUI;
+
+    // What the last drawn frame put on the screen, for the dev action "UI: AI room element count".
+    private struct Counts
+    {
+        public int Chips, Buttons, Rows, Icons;
+    }
+
+    private static Counts _cur;
+    private static Counts _last;
+    private static bool _lastCompact;
+
+    private static void Snapshot()
+    {
+        if (Event.current.type != EventType.Repaint)
+            return;
+        _last = _cur;
+        _lastCompact = Compact;
+    }
+
+    public static string CountReport()
+        => $"AI room, last frame ({(_lastCompact ? "compact" : "full")}):\nchips {_last.Chips}, buttons {_last.Buttons}, info rows {_last.Rows}, icons {_last.Icons}";
+
     public static void Draw(Rect rect, Map map, ref Vector2 scroll)
     {
         AIManager manager = AIManager.Get();
         if (manager == null || map == null)
             return;
+        _cur = default;
 
         var listRect = rect;
         IReadOnlyList<NetAI> ais = manager.AIs;
         if (ais.Count == 0)
         {
+            Snapshot();
             NetrunUI.EmptyState(listRect, NetrunUI.T("NR_StateNoAI"), NetrunUI.T("NR_AINone"), NetrunUI.Purple);
             return;
         }
@@ -69,6 +95,14 @@ public static class AITab
             }
         }
         Widgets.EndScrollView();
+        Snapshot();
+    }
+
+    /// <summary>A tag chip, counted for the dev element count.</summary>
+    private static float Chip(float x, float y, string text, Color color, string tip = null)
+    {
+        _cur.Chips++;
+        return NetrunUI.Chip(x, y, text, color, tip);
     }
 
     /// <summary>Used and total slots of the colony's AI server, for the section title: "1/3".</summary>
@@ -118,6 +152,7 @@ public static class AITab
         var portrait = new Rect(rect.x + 4f + Pad, rect.y + Pad, PortraitSize, PortraitSize);
         NetrunUI.Box(portrait, NetrunUI.BgWindow, color, 2);
         GUI.DrawTexture(portrait.ContractedBy(6f), NetrunTex.Portrait(ai.Personality));
+        _cur.Icons++;
         NetrunUI.Tip(portrait, ai.LocationText);
 
         float x = rect.x + TextIndent;
@@ -127,7 +162,7 @@ public static class AITab
         // Name and status badge.
         float nameWidth = NetrunUI.NamePlate(x, y, ai.Name, NetrunTex.PersonalityColor(ai.Personality), GameFont.Medium, width * 0.6f);
         (string status, Color statusColor) = Status(ai);
-        float chipW = NetrunUI.Chip(x + nameWidth + 10f, y + 6f, status.ToUpper(), statusColor, ai.LocationText);
+        float chipW = Chip(x + nameWidth + 10f, y + 6f, status.ToUpper(), statusColor, ai.LocationText);
         // Rename: a small pen button after the status.
         var pen = new Rect(x + nameWidth + 10f + chipW + 8f, y + 3f, 26f, 26f);
         if (NetrunUI.Button(pen, "✎", NetrunUI.Muted, true, "NR_AIRenameTip".Translate()))
@@ -136,28 +171,29 @@ public static class AITab
 
         // Archetype tag (icon, personality color) and the request, if any.
         float tagX = x;
-        tagX += NetrunUI.Chip(tagX, y + 1f, ai.Personality.Label().ToUpper(), ai.Personality.Color(), ai.Personality.Description()) + 6f;
+        tagX += Chip(tagX, y + 1f, ai.Personality.Label().ToUpper(), ai.Personality.Color(), ai.Personality.Description()) + 6f;
         // Level: three dots, and the quest step if there is one (docs/CONCEPTS_10.md, section 16.1).
         string dots = new string('●', ai.Level) + new string('○', System.Math.Max(0, 3 - ai.Level));
         QuestPart_NetAIQuest quest = AIQuests.QuestOf(ai);
         string levelTip = "NR_AILevelTip".Translate(ai.Level, ai.QuestsDone) + (quest != null ? "\n\n" + quest.quest.name + "\n" + AIQuests.StepText(quest) : "");
-        tagX += NetrunUI.Chip(tagX, y + 1f, dots + (quest != null ? " " + (string)"NR_AIQuestChip".Translate(quest.Step + 1, quest.Steps) : ""), NetrunUI.Ok, levelTip) + 6f;
+        tagX += Chip(tagX, y + 1f, dots + (quest != null ? " " + (string)"NR_AIQuestChip".Translate(quest.Step + 1, quest.Steps) : ""), NetrunUI.Ok, levelTip) + 6f;
         // Traits: seen ones with their plus and minus, the rest as "???" until trust opens them.
         for (int i = 0; i < ai.Traits.Count; i++)
         {
             if (i < ai.TraitsRevealed)
-                tagX += NetrunUI.Chip(tagX, y + 1f, ai.Traits[i].Label().ToUpper(), NetrunUI.Purple, ai.Traits[i].Description()) + 6f;
+                tagX += Chip(tagX, y + 1f, ai.Traits[i].Label().ToUpper(), NetrunUI.Purple, ai.Traits[i].Description()) + 6f;
             else
-                tagX += NetrunUI.Chip(tagX, y + 1f, "???", NetrunUI.Muted, "NR_AITraitHiddenDesc".Translate(AITraitUtility.RevealTrust(i).ToString("0"))) + 6f;
+                tagX += Chip(tagX, y + 1f, "???", NetrunUI.Muted, "NR_AITraitHiddenDesc".Translate(AITraitUtility.RevealTrust(i).ToString("0"))) + 6f;
         }
         if (ai.InMainServer && ai.Server.GetComp<CompAIServer>() is { Temp: not ServerTemp.Normal } room)
-            tagX += NetrunUI.Chip(tagX, y + 1f, room.TempLabel.ToUpper(), room.Temp == ServerTemp.Cooled ? NetrunUI.Ok : room.Temp == ServerTemp.Overheated ? NetrunUI.Warn : NetrunUI.Bad, room.TempTip) + 6f;
-        if (ai.HasRequest)
+            tagX += Chip(tagX, y + 1f, room.TempLabel.ToUpper(), room.Temp == ServerTemp.Cooled ? NetrunUI.Ok : room.Temp == ServerTemp.Overheated ? NetrunUI.Warn : NetrunUI.Bad, room.TempTip) + 6f;
+        // Compact: the request has its own line right below, so the chip would say it twice.
+        if (ai.HasRequest && !Compact)
         {
             string left = ai.RequestDeadlineTick > Find.TickManager.TicksGame
                 ? (ai.RequestDeadlineTick - Find.TickManager.TicksGame).ToStringTicksToPeriod()
                 : "0";
-            NetrunUI.Chip(tagX, y + 1f, "NR_AIRequestTag".Translate(AIManager.RequestText(ai), left), NetrunUI.Warn);
+            Chip(tagX, y + 1f, "NR_AIRequestTag".Translate(AIManager.RequestText(ai), left), NetrunUI.Warn);
         }
         y += 24f;
 
@@ -184,7 +220,8 @@ public static class AITab
 
     private const float InfoRow = 30f;
 
-    private static float InfoRowsHeight(NetAI ai) => InfoRow * 2f + (ai.RequestHistory.Count > 0 ? 22f : 0f) + 4f;
+    private static float InfoRowsHeight(NetAI ai)
+        => Compact ? InfoRow + (ai.HasRequest ? InfoRow : 0f) + 4f : InfoRow * 2f + (ai.RequestHistory.Count > 0 ? 22f : 0f) + 4f;
 
     /// <summary>What the AI eats and how hungry it is; its request (deadline, reward, refusal) or when the next one comes; the last requests.</summary>
     private static float DrawInfoRows(float x, float y, float width, NetAI ai)
@@ -197,7 +234,27 @@ public static class AITab
         float daysLeft = ai.Hunger >= s.starvingHunger ? 0f : (s.starvingHunger - ai.Hunger) / Mathf.Max(0.1f, s.hungerPerDay);
         string foodLine = "NR_AICardFood".Translate(AIBehavior.FoodText(ai.Personality))
             + "  " + (ai.Hunger >= s.starvingHunger ? "NR_AICardStarving".Translate().Colorize(NetrunUI.Bad) : "NR_AICardFedFor".Translate(daysLeft.ToString("0.#")).Colorize(NetrunUI.Muted));
-        InfoRowLine(new Rect(x, y, width, InfoRow), foodIcon, foodLine, "NR_AICardFoodTip".Translate(s.feedHungerRelief.ToString("0"), s.feedTrust.ToString("0"), s.starvingHunger.ToString("0")));
+        string foodTip = "NR_AICardFoodTip".Translate(s.feedHungerRelief.ToString("0"), s.feedTrust.ToString("0"), s.starvingHunger.ToString("0"));
+        if (Compact)
+        {
+            // The last requests move into the tooltip, and the request line shows only when there is one.
+            if (ai.RequestHistory.Count > 0)
+                foodTip += "\n\n" + "NR_AICardHistory".Translate() + "\n" + string.Join("\n", ai.RequestHistory);
+            InfoRowLine(new Rect(x, y, width, InfoRow), null, foodLine, foodTip);
+            y += InfoRow;
+            if (ai.HasRequest)
+            {
+                string due = ai.RequestDeadlineTick > Find.TickManager.TicksGame ? (ai.RequestDeadlineTick - Find.TickManager.TicksGame).ToStringTicksToPeriod() : "0";
+                string line = "NR_AICardRequest".Translate(AIManager.RequestText(ai), due).Colorize(NetrunUI.Warn) + "  " + "NR_AICardRequestStakes".Translate(s.requestTrust.ToString("0")).Colorize(NetrunUI.Muted);
+                var bar = new Rect(x, y + 1f, width, InfoRow - 2f);
+                Widgets.DrawBoxSolid(bar, new Color(NetrunUI.Warn.r, NetrunUI.Warn.g, NetrunUI.Warn.b, 0.12f));
+                Widgets.DrawBoxSolid(new Rect(bar.x, bar.y, 3f, bar.height), NetrunUI.Warn);
+                InfoRowLine(new Rect(x + 4f, y, width - 4f, InfoRow), null, line, "NR_AICardRequestTip".Translate(s.requestTrust.ToString("0")));
+                y += InfoRow;
+            }
+            return y + 4f;
+        }
+        InfoRowLine(new Rect(x, y, width, InfoRow), foodIcon, foodLine, foodTip);
         y += InfoRow;
         // Request.
         string reqLine;
@@ -233,10 +290,16 @@ public static class AITab
 
     private static void InfoRowLine(Rect row, Texture2D icon, string text, string tip)
     {
+        _cur.Rows++;
         if (icon != null)
+        {
             GUI.DrawTexture(new Rect(row.x, row.y + (row.height - 24f) / 2f, 24f, 24f), icon);
+            _cur.Icons++;
+        }
+        // No icon (compact): the text starts at the left edge instead of leaving the icon's gap.
+        float indent = icon != null ? 30f : 0f;
         Text.Anchor = TextAnchor.MiddleLeft;
-        Widgets.Label(new Rect(row.x + 30f, row.y, row.width - 30f, row.height), text.Truncate(row.width - 30f));
+        Widgets.Label(new Rect(row.x + indent, row.y, row.width - indent, row.height), text.Truncate(row.width - indent));
         Text.Anchor = TextAnchor.UpperLeft;
         NetrunUI.Tip(row, text + "\n\n" + tip);
     }
@@ -261,14 +324,16 @@ public static class AITab
         public string Tip;
         public Texture2D Icon;
         public System.Action Action;
+        /// <summary>A rarely used action: folded into the "More" menu in compact mode.</summary>
+        public bool Secondary;
     }
 
     private static List<ButtonSpec> Buttons(NetAI ai, Map map, AIManager manager)
     {
         var list = new List<ButtonSpec>();
 
-        void Add(string label, Color color, AcceptanceReport report, string tip, Texture2D icon, System.Action action)
-            => list.Add(new ButtonSpec { Label = label, Color = color, Report = report, Tip = tip, Icon = icon, Action = action });
+        void Add(string label, Color color, AcceptanceReport report, string tip, Texture2D icon, System.Action action, bool secondary = false)
+            => list.Add(new ButtonSpec { Label = label, Color = color, Report = report, Tip = tip, Icon = icon, Action = action, Secondary = secondary });
 
         float power = AITraitUtility.ServicePower(ai, map);
         string serviceTip = AIBehavior.ServiceDescription(ai.Personality)
@@ -289,33 +354,63 @@ public static class AITab
         if (AIBehavior.Food(ai.Personality) != null && ai.Personality != AIPersonality.Seed && ai.InServer)
             Add((ai.AutoFeed ? "NR_AIAutoFeedOn" : "NR_AIAutoFeedOff").Translate(), ai.AutoFeed ? NetrunUI.Ok : NetrunUI.Muted, true,
                 "NR_AIAutoFeedTip".Translate(AIBehavior.FoodText(ai.Personality), AIBehavior.AutoFeedHunger.ToString("0")), NetrunTex.AIFeed,
-                () => ai.AutoFeed = !ai.AutoFeed);
+                () => ai.AutoFeed = !ai.AutoFeed, secondary: true);
         if (ai.Request == AIRequestKind.Deliver)
             Add("NR_AIFulfil".Translate(), NetrunUI.Warn, manager.CanFulfil(ai, map), "NR_AIFulfilTip".Translate(), NetrunTex.AIFeed,
                 () => manager.Fulfil(ai, map));
         if (ai.InMainServer)
         {
             Add("NR_AIUpload".Translate(), HostColor, AIHosting.CanUpload(ai, map), "NR_AIUploadTip".Translate(), NetrunTex.AIEmbody,
-                () => AIHosting.OpenUploadMenu(ai, map));
+                () => AIHosting.OpenUploadMenu(ai, map), secondary: true);
             Add("NR_AIToCoprocessor".Translate(), NetrunUI.Purple, AIHosting.CanMoveToCoprocessor(ai, map), "NR_AIToCoprocessorTip".Translate(),
-                NetrunTex.AIToCoprocessor, () => AIHosting.MoveToCoprocessor(ai, map));
+                NetrunTex.AIToCoprocessor, () => AIHosting.MoveToCoprocessor(ai, map), secondary: true);
         }
         else if (ai.InHost || ai.InCoprocessor)
         {
             Add("NR_AIDownload".Translate(), HostColor, AIHosting.CanDownload(ai, map), "NR_AIDownloadTip".Translate(), NetrunTex.AIReturnServer,
-                () => AIHosting.Download(ai, map));
+                () => AIHosting.Download(ai, map), secondary: true);
             if (ai.InCoprocessor)
                 Add("NR_AIToOtherCoprocessor".Translate(), NetrunUI.Purple, AIHosting.CanMoveBetweenCoprocessors(ai, map), "NR_AIToOtherCoprocessorTip".Translate(),
-                    NetrunTex.AIToCoprocessor, () => AIHosting.OpenCoprocessorMenu(ai, map));
+                    NetrunTex.AIToCoprocessor, () => AIHosting.OpenCoprocessorMenu(ai, map), secondary: true);
         }
         if (ai.Housed)
         {
             Add(ai.Isolated ? "NR_AIConnect".Translate() : "NR_AIIsolate".Translate(), NetrunUI.Muted, true, "NR_AIIsolateTip".Translate(),
-                NetrunTex.AIIsolate, () => ai.Isolated = !ai.Isolated);
+                NetrunTex.AIIsolate, () => ai.Isolated = !ai.Isolated, secondary: true);
             Add("NR_AIErase".Translate(), NetrunUI.Bad, true, "NR_AIEraseTip".Translate(NetrunDefOf.NR_AI.eraseAdvancedCyberdata), NetrunTex.AIErase,
-                () => Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation("NR_AIEraseConfirm".Translate(ai.Name), () => manager.Erase(ai), destructive: true)));
+                () => Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation("NR_AIEraseConfirm".Translate(ai.Name), () => manager.Erase(ai), destructive: true)), secondary: true);
         }
-        return list;
+        return Compact ? Fold(list) : list;
+    }
+
+    /// <summary>Compact mode: the common actions stay as buttons, the rare ones go behind one "More..." button.</summary>
+    private static List<ButtonSpec> Fold(List<ButtonSpec> all)
+    {
+        var shown = new List<ButtonSpec>(all.Count);
+        List<ButtonSpec> more = null;
+        foreach (ButtonSpec b in all)
+        {
+            if (b.Secondary)
+                (more ??= []).Add(b);
+            else
+                shown.Add(b);
+        }
+        if (more != null)
+            shown.Add(new ButtonSpec { Label = "NR_AIMore".Translate(), Color = NetrunUI.Muted, Report = true, Tip = "NR_AIMoreTip".Translate(), Action = () => OpenMore(more) });
+        return shown;
+    }
+
+    private static void OpenMore(List<ButtonSpec> more)
+    {
+        var options = new List<FloatMenuOption>(more.Count);
+        foreach (ButtonSpec b in more)
+        {
+            if (b.Report.Accepted)
+                options.Add(new FloatMenuOption(b.Label, b.Action));
+            else
+                options.Add(new FloatMenuOption(b.Report.Reason.NullOrEmpty() ? b.Label : b.Label + " (" + b.Report.Reason + ")", null) { Disabled = true });
+        }
+        Find.WindowStack.Add(new FloatMenu(options));
     }
 
     private static int ButtonRows(List<ButtonSpec> buttons, float width)
@@ -324,7 +419,7 @@ public static class AITab
         float x = 0f;
         foreach (ButtonSpec b in buttons)
         {
-            float w = NetrunUI.ButtonWidth(b.Label, icon: true);
+            float w = NetrunUI.ButtonWidth(b.Label, icon: !Compact);
             if (x > 0f && x + w > width)
             {
                 rows++;
@@ -339,15 +434,19 @@ public static class AITab
     {
         float x = rect.x;
         float y = rect.y;
+        bool compact = Compact;
         foreach (ButtonSpec b in buttons)
         {
-            float w = NetrunUI.ButtonWidth(b.Label, icon: true);
+            float w = NetrunUI.ButtonWidth(b.Label, icon: !compact);
             if (x > rect.x && x + w > rect.xMax)
             {
                 x = rect.x;
                 y += ButtonHeight + ButtonGap;
             }
-            if (NetrunUI.Button(new Rect(x, y, w, ButtonHeight), b.Label, b.Color, b.Report, b.Tip, b.Icon))
+            _cur.Buttons++;
+            if (!compact && b.Icon != null)
+                _cur.Icons++;
+            if (NetrunUI.Button(new Rect(x, y, w, ButtonHeight), b.Label, b.Color, b.Report, b.Tip, compact ? null : b.Icon))
                 b.Action();
             x += w + ButtonGap;
         }
