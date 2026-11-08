@@ -579,8 +579,6 @@ public static partial class NetrunUI
         return value;
     }
 
-    private static readonly System.Collections.Generic.List<(Rect screen, Texture2D tex, Color color)> LateIcons = [];
-    private static int _lateFrame;
     // GUIClip.visibleRect through a delegate on its getter (not PropertyInfo.GetValue, which boxes: PERF_AUDIT_4, 16).
     private static readonly System.Func<Rect> VisibleRect = MakeVisibleRect();
 
@@ -595,50 +593,24 @@ public static partial class NetrunUI
     /// <summary>The visible part of the current clip (a scroll view) in local coordinates, or an empty rect if unknown.</summary>
     public static Rect ClipRect() => VisibleRect?.Invoke() ?? default;
 
-    /// <summary>
-    /// Draws an icon and remembers it, so the CRT lines drawn over the screen afterwards do not dim it. Only icons that
-    /// are fully visible (not cut by a scroll view) are redrawn.
-    /// </summary>
+    /// <summary>Draws a tinted icon. The CRT lines are drawn under the content (see Scanlines), so nothing dims it.</summary>
     public static void BrightIcon(Rect rect, Texture2D tex)
     {
         if (tex == null)
             return;
-        tex = NetrunTint.Of(tex);
-        GUI.DrawTexture(rect, tex);
-        if (Event.current.type != EventType.Repaint)
-            return;
-        if (_lateFrame != Time.frameCount)
-        {
-            LateIcons.Clear();
-            _lateFrame = Time.frameCount;
-        }
-        if (ContentScaled)
-            return;
-        if (VisibleRect != null && VisibleRect() is var visible && !(visible.Contains(rect.min) && visible.Contains(rect.max)))
-            return;
-        LateIcons.Add((new Rect(GUIUtility.GUIToScreenPoint(rect.position), rect.size), tex, GUI.color));
+        GUI.DrawTexture(rect, NetrunTint.Of(tex));
     }
 
-    /// <summary>Set by the terminal while its content is drawn at a scale (no late icons then).</summary>
-    public static bool ContentScaled;
-
-    /// <summary>Faint CRT lines over a screen (one draw call); the bright icons go back on top.</summary>
+    /// <summary>
+    /// Faint CRT lines over a screen (one draw call). Call it right after the screen's background fill and before the
+    /// content, so the icons and text stay bright. (Drawing them over the content and redrawing the icons on top put
+    /// copies of the icons in the wrong places, 2026-11.)
+    /// </summary>
     public static void Scanlines(Rect screen)
     {
         if (Event.current.type != EventType.Repaint || !NetrunMod.Settings.Scanlines)
             return;
         GUI.DrawTextureWithTexCoords(screen, ScanlineTex, new Rect(0f, 0f, 1f, screen.height / 3f));
-        if (_lateFrame == Time.frameCount)
-        {
-            Color old = GUI.color;
-            foreach ((Rect r, Texture2D tex, Color color) in LateIcons)
-            {
-                GUI.color = color;
-                GUI.DrawTexture(new Rect(GUIUtility.ScreenToGUIPoint(r.position), r.size), tex);
-            }
-            GUI.color = old;
-        }
-        LateIcons.Clear();
     }
 
     /// <summary>

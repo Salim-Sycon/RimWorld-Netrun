@@ -120,7 +120,6 @@ public class Dialog_DiveReport : Window
         {
             Rect screen = NetrunUI.Bezel(inRect, 8f);
             DrawContents(screen);
-            NetrunUI.Scanlines(screen);
         }
         finally
         {
@@ -133,6 +132,7 @@ public class Dialog_DiveReport : Window
     {
         _row = 0;
         Widgets.DrawBoxSolid(inRect, NetrunUI.BgWindow);
+        NetrunUI.Scanlines(inRect);
         GUI.color = new Color(NetrunUI.Accent.r, NetrunUI.Accent.g, NetrunUI.Accent.b, 0.5f);
         Widgets.DrawBox(inRect);
         GUI.color = Color.white;

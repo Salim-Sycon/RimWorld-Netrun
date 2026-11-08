@@ -63,6 +63,7 @@ public class Dialog_AIServer : Window
                 key => { if (key == NetrunUI.KeyClose) Close(); }, menu: false);
             NetrunUI.DragByCasing(inRect, screen);
             Widgets.DrawBoxSolid(screen, NetrunUI.BgWindow);
+            NetrunUI.Scanlines(screen);
             var title = new Rect(screen.x, screen.y, screen.width, 44f);
             Text.Font = GameFont.Medium;
             Text.Anchor = TextAnchor.MiddleLeft;
@@ -83,7 +84,6 @@ public class Dialog_AIServer : Window
             Widgets.DrawLineHorizontal(title.x, title.yMax - 1f, title.width);
             GUI.color = Color.white;
             AITab.Draw(new Rect(screen.x, title.yMax, screen.width, screen.height - title.height).ContractedBy(12f), _map, ref _scroll);
-            NetrunUI.Scanlines(screen);
             // NetrunUI.DeckGlass(screen); // Glass Screen is off for now (Maxim, 2026-10-09: works badly)
         }
         finally

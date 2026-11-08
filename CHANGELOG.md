@@ -34,7 +34,10 @@ All notable changes to Hacking Expansion: Netrun. Format: [Keep a Changelog](htt
 - Settings: "Cyberpods need fuel" (on by default). Off, cyberpods hack without fuel and are never refuelled; a dive still costs cyberdata from storage.
 - Fixed: a gravship could not land on the distress signal site.
 - Fixed: the fame of a challenge race went to a random crew instead of the one that threw it.
+
 - New setting "Compact interface" (off by default, in the terminal under MENU, Customization, Graphics): labelled buttons show text only on every screen. The AI room also puts rare actions (auto-feed, upload, move to coprocessor, isolate, erase) under a "More..." menu, drops the repeated request chip and the empty request row, and keeps the request history in a tooltip. The Board hides its "Active" chip while no contract is running.
+- Fixed: button icons were drawn twice on terminal screens, once in the button and once at an offset position (AI room, and the terminal with auto-scale off). The CRT scanlines are now drawn under the content instead of over it, so the late icon redraw is gone.
+
 
 ## [1.2.2] - 2026-10-23
 - The data courier leaves at once when his hunters are beaten, he is unhurt and no other enemy on the map still fights (sleeping mechs, hive insects and shamblers do not count).
